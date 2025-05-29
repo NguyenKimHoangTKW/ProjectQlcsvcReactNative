@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { API_URL } from '../apiConfig';
 import { LinearGradient } from 'react-native-linear-gradient';
 import { Surface } from 'react-native-paper';
+import Toast from 'react-native-toast-message';
 
 const { width } = Dimensions.get('window');
 
@@ -46,6 +47,43 @@ async function getUserInfo(email: string, navigation: any) {
       navigation.navigate('ListDevices');
     }else if(res.idRole === 3){
       navigation.navigate('BorrowerListManagement');
+    }
+    else if(res.idRole === 2){
+      Toast.show({
+        type: 'error',
+        position: 'top',
+        text1: 'Thông báo quan trọng',
+        text2: "Đây là tài khoản Admin, vui lòng truy cập vào trang web để quản lý hệ thống",
+        visibilityTime: 5000,
+        autoHide: true,
+        topOffset: 60,
+      });
+      console.log("Đây là tài khoản Admin, vui lòng truy cập vào trang web để quản lý");
+      
+      try {
+        await GoogleSignin.signOut();
+        await auth().signOut();
+      } catch (error) {
+        console.log('Error signing out:', error);
+      }
+    }
+  }
+  else{
+    Toast.show({
+      type: 'error',
+      position: 'top',
+      text1: 'Lỗi đăng nhập',
+      text2: res.message,
+      visibilityTime: 5000,
+      autoHide: true,
+      topOffset: 60,
+    });
+    
+    try {
+      await GoogleSignin.signOut();
+      await auth().signOut();
+    } catch (error) {
+      console.log('Error signing out:', error);
     }
   }
 }

@@ -57,10 +57,10 @@ export default function ListDevices() {
   const [fullPhanLoai, setFullPhanLoai] = useState<any>([]);
 
   // Filter and pagination logic
-  const filteredDevices = selectedGroup === 'all' 
-    ? devices 
+  const filteredDevices = selectedGroup === 'all'
+    ? devices
     : devices.filter(device => device.ten_phan_loai === selectedGroup);
-  
+
   const totalPages = Math.ceil(filteredDevices.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -87,7 +87,7 @@ export default function ListDevices() {
     setCurrentPage(1);
   }, [selectedGroup]);
 
-  
+
   async function getFullPhanLoai() {
     const response = await fetch(`${API_URL}/droplist-phan-loai`, {
       method: 'GET',
@@ -169,23 +169,21 @@ export default function ListDevices() {
           position: 'top',
           text1: 'Thành công',
           text2: res.message,
-          visibilityTime: 3000,
+          visibilityTime: 5000,
           autoHide: true,
-          topOffset: 30,
-          bottomOffset: 40,
+          topOffset: 60,
         });
         setModalVisible(false);
-        getDevice(); 
+        getDevice();
       } else {
         Toast.show({
           type: 'error',
           position: 'top',
           text1: 'Lỗi',
           text2: res.message,
-          visibilityTime: 3000,
+          visibilityTime: 5000,
           autoHide: true,
-          topOffset: 30,
-          bottomOffset: 40,
+          topOffset: 60,
         });
       }
     } catch (error) {
@@ -194,10 +192,9 @@ export default function ListDevices() {
         position: 'top',
         text1: 'Lỗi',
         text2: 'Có lỗi xảy ra, vui lòng thử lại',
-        visibilityTime: 3000,
+        visibilityTime: 5000,
         autoHide: true,
-        topOffset: 30,
-        bottomOffset: 40,
+        topOffset: 60,
       });
     }
   }
@@ -286,8 +283,8 @@ export default function ListDevices() {
           ) : filteredDevices.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                {selectedGroup === 'all' 
-                  ? 'Không có thiết bị nào' 
+                {selectedGroup === 'all'
+                  ? 'Không có thiết bị nào'
                   : `Không có thiết bị loại "${selectedGroup}"`
                 }
               </Text>
@@ -332,7 +329,7 @@ export default function ListDevices() {
 
                   <View style={styles.statusRow}>
                     <Text style={styles.statusLabel}>Trạng thái:</Text>
-                    <Text style={[styles.statusValue, {color: device.ten_trang_thaii === 'Hết' ? '#f44336' : '#4caf50'}]}>
+                    <Text style={[styles.statusValue, { color: device.ten_trang_thaii === 'Hết' ? '#f44336' : '#4caf50' }]}>
                       {device.ten_trang_thaii}
                     </Text>
                   </View>
@@ -353,9 +350,9 @@ export default function ListDevices() {
                 )}
               </Text>
             </View>
-            
+
             <View style={styles.paginationControls}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.paginationButton, currentPage === 1 && styles.paginationButtonDisabled]}
                 onPress={goToPreviousPage}
                 disabled={currentPage === 1}
@@ -385,7 +382,7 @@ export default function ListDevices() {
                 ))}
               </View>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.paginationButton, currentPage === totalPages && styles.paginationButtonDisabled]}
                 onPress={goToNextPage}
                 disabled={currentPage === totalPages}
