@@ -6,7 +6,9 @@ import {
   TouchableOpacity, 
   SafeAreaView,
   ScrollView,
-  Alert
+  Alert,
+  Modal,
+  TextInput
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { API_URL, getUserInfo } from '../apiConfig';
@@ -31,6 +33,8 @@ export default function BorrowedEquipmentUser() {
   const [borrowedItems, setBorrowedItems] = useState<BorrowedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [userInfo, setUserInfo] = useState<any>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<BorrowedItem | null>(null);
 
   async function getBorrowedItems() {
     try {
@@ -123,6 +127,40 @@ export default function BorrowedEquipmentUser() {
     }
   };
 
+  const handleCancel = (item: BorrowedItem) => {
+    setSelectedItem(item);
+    setModalVisible(true);
+  };
+
+  const confirmCancel = async () => {
+    if (!selectedItem) return;
+    const response = await fetch(`${API_URL}/user-huy-muon-thiet-bi`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id_danh_sach_muon: selectedItem.id_danh_sach_muon,
+        ly_do_huy: selectedItem.ly_do_huy || 'Người dùng hủy'
+      }),
+    });
+    const data = await response.json();
+    
+    if (data.success) {
+      Alert.alert('Thành công', data.message);
+      getBorrowedItems();
+    } else {
+      Alert.alert('Lỗi', data.message || 'Không thể hủy thiết bị mượn');
+    }
+
+    setModalVisible(false);
+    setSelectedItem(null);
+  };
+
+  const canCancelItem = (status: string) => {
+    return status === 'Đang chờ duyệt';
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -210,6 +248,18 @@ export default function BorrowedEquipmentUser() {
                     <Text style={styles.statusButtonText}>{item.ten_trang_thaii || 'Không xác định'}</Text>
                   </TouchableOpacity>
                 </View>
+
+                {/* Cancel Button */}
+                <View style={styles.cancelButtonContainer}>
+                  {canCancelItem(item.ten_trang_thaii || 'Không xác định') && (
+                    <TouchableOpacity 
+                      style={styles.cancelButton}
+                      onPress={() => handleCancel(item)}
+                    >
+                      <Text style={styles.cancelButtonText}>Hủy</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             ))
           ) : (
@@ -219,6 +269,44 @@ export default function BorrowedEquipmentUser() {
           )}
         </View>
       </ScrollView>
+
+      {/* Cancel Confirmation Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Nhập lý do hủy</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Lý do hủy"
+              value={selectedItem?.ly_do_huy || ''}
+              onChangeText={(text) => {
+                if (selectedItem) {
+                  setSelectedItem({ ...selectedItem, ly_do_huy: text });
+                }
+              }}
+            />
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.confirmButton}
+                onPress={confirmCancel}
+              >
+                <Text style={styles.buttonText}>Đồng ý</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -319,5 +407,58 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: '#666',
+  },
+  cancelButtonContainer: {
+    alignItems: 'flex-end',
+  },
+  cancelButton: {
+    padding: 10,
+    borderRadius: 5,
+  },
+  cancelButtonText: {
+    color: '#f44336',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  input: {
+    width: '100%',
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 10,
+    padding: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  confirmButton: {
+    backgroundColor: '#4caf50',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
